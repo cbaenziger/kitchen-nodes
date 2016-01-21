@@ -74,8 +74,8 @@ module Kitchen
           @connection.node_execute('hostname -f').chomp
         end
 
-        def read_node
-          @connection.node_execute("cat #{config[:nodes_path]}/#{instance.name}.json").chomp
+        def read_file(path)
+          @connection.node_execute("cat #{path}").chomp
         end
 
         private

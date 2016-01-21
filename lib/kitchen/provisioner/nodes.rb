@@ -29,9 +29,11 @@ module Kitchen
     #
     # @author Matt Wrock <matt@mattwrock.com>
     class Nodes < ChefZero
+
       def create_sandbox
         FileUtils.rm(node_file) if File.exist?(node_file)
         create_node(JSON.pretty_generate(node_template))
+
       ensure
         super
       end
@@ -131,7 +133,8 @@ module Kitchen
         [:username, :password].each do |prop|
           state[prop] = instance.driver[prop] if instance.driver[prop]
         end
-        node_data = Finder.for_transport(instance.transport, state).read_node
+        remote_node_path = "#{config[:nodes_path]}/#{instance.name}.json"
+        node_data = Finder.for_transport(instance.transport, state).read_file(remote_node_path)
         fail 'Unable to retrieve instance node file' if node_data.empty?
         ips
       end

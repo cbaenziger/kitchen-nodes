@@ -52,7 +52,7 @@ describe Kitchen::Provisioner::Nodes do
   subject { Kitchen::Provisioner::Nodes.new(config).finalize_config!(instance) }
 
   it 'creates node' do
-    subject.create_node
+    subject.create_node()
 
     expect(File).to exist(subject.node_file)
   end
