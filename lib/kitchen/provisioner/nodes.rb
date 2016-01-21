@@ -31,16 +31,22 @@ module Kitchen
     class Nodes < ChefZero
       def create_sandbox
         FileUtils.rm(node_file) if File.exist?(node_file)
-        create_node
+        create_node(JSON.pretty_generate(node_template))
       ensure
         super
       end
 
-      def create_node
+      def cleanup_sandbox
+        FileUtils.rm(node_file) if File.exist?(node_file)
+        create_node(read_remote_node_file)
+      ensure
+        super
+      end
+
+      def create_node(node_data)
         FileUtils.mkdir_p(node_dir) unless Dir.exist?(node_dir)
-        template_to_write = node_template
         File.open(node_file, 'w') do |out|
-          out << JSON.pretty_generate(template_to_write)
+          out << node_data
         end
       end
 
@@ -117,6 +123,17 @@ module Kitchen
 
       def node_file
         File.join(node_dir, "#{instance.name}.json")
+      end
+
+      def read_remote_node_file
+        state = state_file
+        # inject creds into state for legacy drivers
+        [:username, :password].each do |prop|
+          state[prop] = instance.driver[prop] if instance.driver[prop]
+        end
+        node_data = Finder.for_transport(instance.transport, state).read_node
+        fail 'Unable to retrieve instance node file' if node_data.empty?
+        ips
       end
 
       def get_reachable_guest_address(state)

@@ -74,6 +74,10 @@ module Kitchen
           @connection.node_execute('hostname -f').chomp
         end
 
+        def read_node
+          @connection.node_execute("cat #{config[:nodes_path]}/#{instance.name}.json").chomp
+        end
+
         private
 
         def run_ifconfig
