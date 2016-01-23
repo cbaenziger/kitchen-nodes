@@ -22,6 +22,7 @@ require 'kitchen/provisioner/finder'
 require 'kitchen/provisioner/run_list_expansion_from_kitchen'
 require 'net/ping'
 require 'chef/run_list'
+require 'stringio'
 
 module Kitchen
   module Provisioner
@@ -133,10 +134,12 @@ module Kitchen
         [:username, :password].each do |prop|
           state[prop] = instance.driver[prop] if instance.driver[prop]
         end
-        remote_node_path = "#{config[:nodes_path]}/#{instance.name}.json"
-        node_data = Finder.for_transport(instance.transport, state).read_file(remote_node_path)
+        remote_node_path = "/tmp/kitchen/nodes/#{instance.name}.json"
+        temp_io = StringIO.new() # file must fit in memory
+        Finder.for_transport(instance.transport, state).download(temp_io, remote_node_path)
+        node_data = temp_io.read()
         fail 'Unable to retrieve instance node file' if node_data.empty?
-        ips
+        node_data
       end
 
       def get_reachable_guest_address(state)
