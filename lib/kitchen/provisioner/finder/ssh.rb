@@ -44,6 +44,14 @@ module Kitchen
         end
         # rubocop:enable Metrics/AbcSize
 
+        def download(remote)
+          session.scp.download!(remote) do |_ch, name, received, total|
+            logger.debug("Downloaded #{name} (#{total} bytes)") if received == total
+          end
+        rescue Net::SSH::Exception => ex
+          raise SshFailed, "SCP download failed (#{ex.message})"
+        end
+
       end
     end
   end
@@ -97,19 +105,6 @@ module Kitchen
             ips << IP4REGEX.match(device)[1] unless found_ips.nil?
           end
           ips.compact
-        end
-
-        def download(locals, remote)
-          Array(locals).each do |local|
-            # can run recursive regardless of remote side being a file or directory
-            opts = { :recursive => true }
-
-            session.scp.download!(remote, local, opts) do |_ch, name, received, total|
-              logger.debug("Downloaded #{name} (#{total} bytes)") if received == total
-            end
-          end
-        rescue Net::SSH::Exception => ex
-          raise SshFailed, "SCP download failed (#{ex.message})"
         end
       end
     end

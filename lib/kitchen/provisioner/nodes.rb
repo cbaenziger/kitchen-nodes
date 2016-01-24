@@ -135,9 +135,8 @@ module Kitchen
           state[prop] = instance.driver[prop] if instance.driver[prop]
         end
         remote_node_path = "/tmp/kitchen/nodes/#{instance.name}.json"
-        temp_io = StringIO.new() # file must fit in memory
-        Finder.for_transport(instance.transport, state).download(temp_io, remote_node_path)
-        node_data = temp_io.read()
+        puts "XXX #{remote_node_path}"
+        node_data = instance.transport.connection(state).download(remote_node_path)
         fail 'Unable to retrieve instance node file' if node_data.empty?
         node_data
       end
